@@ -1,0 +1,1 @@
+web: build/install/ktor-prater/bin/ktor-prater

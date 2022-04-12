@@ -8,7 +8,7 @@ import org.prater.model.UserSession
 import org.prater.plugins.*
 
 fun main() {
-    embeddedServer(Netty, port = 3000, host = "localhost") {
+    embeddedServer(Netty, port = System.getenv("PORT").toInt(), host = "localhost") {
         install(Sessions) {
             cookie<UserSession>("user_session")
         }
