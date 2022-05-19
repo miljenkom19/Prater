@@ -58,13 +58,15 @@ fun Application.configureRouting() {
         }
 
         post("/users/register") {
-            val user = call.receive<User>()
+            val username = call.parameters["username"]!!
+            val password = call.parameters["password"]!!
+            val user = User(null, username, password)
 
             val users = db.from(UserEntity).select().map {
                 val id = it[UserEntity.id]!!
-                val username = it[UserEntity.username]!!
-                val password = it[UserEntity.password]!!
-                User(id, username, password)
+                val usernameToMap = it[UserEntity.username]!!
+                val passwordToMap = it[UserEntity.password]!!
+                User(id, usernameToMap, passwordToMap)
             }
 
             for(u in users) {
@@ -82,9 +84,9 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.ServiceUnavailable)
             } else {
                 val id = generatedId as Int
-                val username = user.username
-                val password = user.password
-                val userResponse = User(id, username, password)
+                val usernameResponse = user.username
+                val passwordResponse = user.password
+                val userResponse = User(id, usernameResponse, passwordResponse)
                 call.respond(HttpStatusCode.OK, userResponse)
             }
         }
@@ -132,24 +134,6 @@ fun Application.configureRouting() {
                 call.respond(user)
             }
         }
-
-        /*
-        post("/users") {
-            val userRequest = call.receive<UserRequest>()
-
-            val insert = db.insert(UserEntity) {
-                set(it.username, userRequest.username)
-                set(it.password, userRequest.password)
-            }
-
-            if(insert == 0) {
-                call.respond(HttpStatusCode.ServiceUnavailable)
-            } else {
-                call.respond(userRequest)
-            }
-
-        }
-        */
 
         put("/users") {
             val user = call.receive<User>()
@@ -241,7 +225,9 @@ fun Application.configureRouting() {
         }
 
         post("/conversations") {
-            val conversation = call.receive<Conversation>()
+            val user1 = Integer.parseInt(call.parameters["user1"])
+            val user2 = Integer.parseInt(call.parameters["user2"])
+            val conversation = Conversation(null, user1, user2)
 
             val generatedId = db.insertAndGenerateKey(ConversationEntity) {
                 set(it.user1, conversation.user1)
@@ -252,9 +238,9 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.ServiceUnavailable)
             } else {
                 val id = generatedId as Int
-                val user1 = conversation.user1
-                val user2 = conversation.user2
-                val conversationResponse = Conversation(id, user1, user2)
+                val user1Response = conversation.user1
+                val user2Response = conversation.user2
+                val conversationResponse = Conversation(id, user1Response, user2Response)
                 call.respond(HttpStatusCode.OK, conversationResponse)
             }
         }
