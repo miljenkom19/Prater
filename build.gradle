@@ -32,7 +32,7 @@ dependencies {
 
     //Ktorm
     implementation 'org.ktorm:ktorm-core:3.4.1'
-    implementation 'mysql:mysql-connector-java:8.0.28'
+    implementation 'mysql:mysql-connector-java:8.0.29'
 
     //Session
     implementation "io.ktor:ktor-server-sessions:$ktor_version"
