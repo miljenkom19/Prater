@@ -280,5 +280,20 @@ fun Application.configureRouting() {
             }
          }
 
+        get("/image/{imageId}") {
+            val imageId = Integer.parseInt(call.parameters["imageId"])
+
+            val imageData = db.from(ImageEntity)
+                .select()
+                .where(ImageEntity.id eq imageId)
+                .map { it[ImageEntity.data] }
+                .firstOrNull()
+
+            if(imageData == null)
+                call.respond(HttpStatusCode.NotFound)
+            else
+                call.respond(HttpStatusCode.OK, imageData)
+        }
+
     }
 }
