@@ -3,9 +3,7 @@ package org.prater.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(
+data class Image(
     val id: Int?,
-    val username: String,
-    val password: String,
-    val profilePicture: Int?
+    val data: String
 )

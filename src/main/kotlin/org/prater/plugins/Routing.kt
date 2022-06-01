@@ -11,6 +11,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
 import org.ktorm.dsl.*
 import org.prater.db.DatabaseConnection
 import org.prater.entities.ConversationEntity
+import org.prater.entities.ImageEntity
 import org.prater.entities.MessageEntity
 import org.prater.entities.UserEntity
 import org.prater.model.*
@@ -26,7 +27,8 @@ fun Application.configureRouting() {
                 val id = it[UserEntity.id]!!
                 val username = it[UserEntity.username]!!
                 val password = it[UserEntity.password]!!
-                User(id, username, password)
+                val profilePicture = it[UserEntity.profilePicture] ?: 0
+                User(id, username, password, profilePicture)
             }
 
             if(users.isEmpty()) {
@@ -44,7 +46,8 @@ fun Application.configureRouting() {
                 val id = it[UserEntity.id]!!
                 val username = it[UserEntity.username]!!
                 val password = it[UserEntity.password]!!
-                User(id, username, password)
+                val profilePicture = it[UserEntity.profilePicture] ?: 0
+                User(id, username, password, profilePicture)
             }
 
             for(user in users) {
@@ -60,13 +63,14 @@ fun Application.configureRouting() {
         post("/users/register") {
             val username = call.parameters["username"]!!
             val password = call.parameters["password"]!!
-            val user = User(null, username, password)
+            val user = User(null, username, password, null)
 
             val users = db.from(UserEntity).select().map {
                 val id = it[UserEntity.id]!!
                 val usernameToMap = it[UserEntity.username]!!
                 val passwordToMap = it[UserEntity.password]!!
-                User(id, usernameToMap, passwordToMap)
+                val profilePicture = it[UserEntity.profilePicture] ?: 0
+                User(id, usernameToMap, passwordToMap, profilePicture)
             }
 
             for(u in users) {
@@ -86,7 +90,8 @@ fun Application.configureRouting() {
                 val id = generatedId as Int
                 val usernameResponse = user.username
                 val passwordResponse = user.password
-                val userResponse = User(id, usernameResponse, passwordResponse)
+                val profilePictureResponse = user.profilePicture ?: 0
+                val userResponse = User(id, usernameResponse, passwordResponse, profilePictureResponse)
                 call.respond(HttpStatusCode.OK, userResponse)
             }
         }
@@ -102,7 +107,8 @@ fun Application.configureRouting() {
                     val id = it[UserEntity.id]!!
                     val username = it[UserEntity.username]!!
                     val password = it[UserEntity.password]!!
-                    User(id, username, password)
+                    val profilePicture = it[UserEntity.profilePicture] ?: 0
+                    User(id, username, password, profilePicture)
                 }
                 .firstOrNull()
 
@@ -124,7 +130,8 @@ fun Application.configureRouting() {
                     val userId = it[UserEntity.id]!!
                     val userUsername = it[UserEntity.username]!!
                     val userPassword = it[UserEntity.password]!!
-                    User(userId, userUsername, userPassword)
+                    val profilePicture = it[UserEntity.profilePicture] ?: 0
+                    User(userId, userUsername, userPassword, profilePicture)
                 }
                 .firstOrNull()
 
@@ -244,6 +251,34 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.OK, conversationResponse)
             }
         }
+
+        //Image
+        post("/image") {
+            val imageData = call.parameters["image"].toString()
+            val userId = Integer.parseInt(call.parameters["userId"])
+
+            val generatedId = db.insertAndGenerateKey(ImageEntity) {
+                set(it.data, imageData)
+            }
+
+            if((generatedId as? Int ?: 0) == 0) {
+                call.respond(HttpStatusCode.ServiceUnavailable)
+            } else {
+                val imageId = generatedId as Int
+                val image = Image(imageId, imageData)
+
+                val update = db.update(UserEntity) {
+                    set(it.profilePicture, imageId)
+                    where { it.id eq userId }
+                }
+
+                if(update == 0) {
+                    call.respond(HttpStatusCode.ServiceUnavailable)
+                } else {
+                    call.respond(HttpStatusCode.OK, image)
+                }
+            }
+         }
 
     }
 }
